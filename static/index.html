@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>AI 私厨管家</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  body { font-family: -apple-system, sans-serif; max-width: 720px; margin: 40px auto; padding: 0 16px; }
+  textarea, input[type=file] { width: 100%; margin: 8px 0; }
+  textarea { height: 60px; font-family: inherit; }
+  button { padding: 8px 20px; cursor: pointer; }
+  #report { margin-top: 24px; line-height: 1.6; }
+  #report img { max-width: 100%; }
+  #status { color: #888; }
+</style>
+</head>
+<body>
+  <h1>🍳 AI 私厨管家</h1>
+  <textarea id="message" placeholder="描述你有哪些食材，或配一张照片">帮我推荐几个食谱</textarea>
+  <input id="image" type="file" accept="image/*">
+  <button id="submit">提交</button>
+  <p id="status"></p>
+  <div id="report"></div>
+
+<script>
+let threadId = null;
+
+document.getElementById("submit").onclick = async () => {
+  const message = document.getElementById("message").value;
+  const imageFile = document.getElementById("image").files[0];
+  const statusEl = document.getElementById("status");
+  const reportEl = document.getElementById("report");
+
+  const form = new FormData();
+  form.append("message", message);
+  if (threadId) form.append("thread_id", threadId);
+  if (imageFile) form.append("image", imageFile);
+
+  statusEl.textContent = "生成中，可能需要 1-3 分钟…";
+  reportEl.innerHTML = "";
+
+  try {
+    const res = await fetch("/api/recommend", { method: "POST", body: form });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    threadId = data.thread_id;
+    reportEl.innerHTML = marked.parse(data.answer);
+    statusEl.textContent = "";
+  } catch (e) {
+    statusEl.textContent = "出错了：" + e.message;
+  }
+};
+</script>
+</body>
+</html>
