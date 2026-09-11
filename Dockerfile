@@ -5,7 +5,6 @@ WORKDIR /srv
 COPY pyproject.toml ./
 COPY app ./app
 COPY static ./static
-COPY butler_agent.py ./
 
 RUN pip install --no-cache-dir \
     langchain langchain-community langchain-openai langchain-tavily \
